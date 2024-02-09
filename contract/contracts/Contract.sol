@@ -51,6 +51,7 @@ contract MyContract {
     //Errors
     error ListedPrice(string);
     error NotOwner(string);
+    error InsufficientAmount(string);
 
     constructor() {}
 
@@ -98,7 +99,20 @@ contract MyContract {
 
     }
 
-    function buyProperty() external payable {
+    function buyProperty(uint id, address buyer) external payable {
+        uint amountToPay = msg.value;
+        if(amountToPay != properties[id].price){
+            revert InsufficientAmount("Insufficient Funds");
+
+        }
+
+        Property storage property = properties[id];
+        
+        (bool success, ) = payable(property.owner).call{value: amountToPay}("");
+        if(success){
+            property.owner = buyer;
+            emit PropertySold(id, property.owner, buyer, amountToPay);
+        }
 
     }
 
