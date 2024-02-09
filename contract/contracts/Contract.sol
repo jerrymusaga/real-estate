@@ -87,6 +87,17 @@ contract MyContract {
         return productId;
     }
 
+    function changePrice(address owner, uint productId, uint price) external returns (string memory){
+        Property storage property = properties[productId];
+        if(property.owner != owner){
+            revert NotOwner("You not the owner of this property!");
+        }
+        property.price = price;
+
+        return "property price has been updated!";
+
+    }
+
     function buyProperty() external payable {
 
     }
