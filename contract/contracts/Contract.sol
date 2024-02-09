@@ -9,7 +9,7 @@ contract MyContract {
         uint price;
         string propertyName;
         string category;
-        string image;
+        string images;
         string propertyAddress;
         string propertyDescription;
         address[] reviewers;
@@ -40,7 +40,7 @@ contract MyContract {
 
     event ReviewAdded(uint indexed productId, address indexed reviewer, uint indexed rating, string comment );
     event ReviewLiked(uint indexed productId, uint indexed reviewIndex, address indexed liker, uint indexed likes);
-    
+
 
     struct Product{
         uint productId;
@@ -48,10 +48,27 @@ contract MyContract {
         uint numOfReviews;
     }
 
+    //Errors
+    error ListedPrice(string);
+
     constructor() {}
 
-    function listProperty() external returns (uint){
+    function listProperty(address owner, uint price, string memory _propertyName, string memory _category, string memory _images, string memory _propertyAddress, string memory _propertyDescription) external returns (uint){
+        if(price < 0){
+            revert ListedPrice("Price must be greater than 0");
+        }
+        uint productId = propertyIndex++;
+        Property storage property = properties[productId];
+        property.productId = productId;
+        property.owner = owner;
+        property.category = _category;
+        property.images = _images;
+        property.price = price;
+        property.propertyAddress = _propertyAddress;
+        property.propertyDescription = _propertyDescription;
+        property.propertyName = _propertyName;
 
+        emit PropertyListed(productId, owner, price);
     }
 
     function updateProperty() external returns (uint){
