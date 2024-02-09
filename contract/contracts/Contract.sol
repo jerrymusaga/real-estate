@@ -117,7 +117,18 @@ contract MyContract {
     }
 
     function getAllProperties() public view returns(Property[] memory){
+        uint itemCount = propertyIndex;
+        uint currentIndex = 0;
 
+        Property[] memory items = new Property[](itemCount);
+        for (uint i = 0; i < itemCount ; i++){
+            uint currentId = i + 1;
+
+            Property storage currentItem = properties[currentId];
+            items[currentIndex] = currentItem;
+            currentIndex += 1;
+        } 
+        return items;
     } 
 
     function getProperty() external view returns(){}
