@@ -50,6 +50,7 @@ contract MyContract {
 
     //Errors
     error ListedPrice(string);
+    error NotOwner(string);
 
     constructor() {}
 
@@ -71,8 +72,19 @@ contract MyContract {
         emit PropertyListed(productId, owner, price);
     }
 
-    function updateProperty() external returns (uint){
+    function updateProperty(address owner, uint productId, string memory _propertyName, string memory _category, string memory _images, string memory _propertyAddress, string memory _propertyDescription ) external returns (uint){
+        Property storage property = properties[productId];
+        if(property.owner != owner){
+            revert NotOwner("You not the owner of this property!");
+        }
 
+        property.category = _category;
+        property.images = _images;
+        property.propertyAddress = _propertyAddress;
+        property.propertyDescription = _propertyDescription;
+        property.propertyName = _propertyName;
+
+        return productId;
     }
 
     function buyProperty() external payable {
