@@ -39,7 +39,7 @@ contract MyContract {
     uint public reviewsCounter;
 
     event ReviewAdded(uint indexed productId, address indexed reviewer, uint indexed rating, string comment );
-    event ReviewLiked(uint indexed productId, uint indexed reviewIndex, address indexed liker, uint indexed likes);
+    event ReviewLiked(uint indexed productId, uint indexed reviewIndex, address indexed liker, uint likes);
 
 
     struct Product{
@@ -71,6 +71,7 @@ contract MyContract {
         property.propertyName = _propertyName;
 
         emit PropertyListed(productId, owner, price);
+        return productId;
     }
 
     function updateProperty(address owner, uint productId, string memory _propertyName, string memory _category, string memory _images, string memory _propertyAddress, string memory _propertyDescription ) external returns (uint){
@@ -101,19 +102,17 @@ contract MyContract {
 
     function buyProperty(uint id, address buyer) external payable {
         uint amountToPay = msg.value;
-        if(amountToPay != properties[id].price){
+        if (amountToPay != properties[id].price) {
             revert InsufficientAmount("Insufficient Funds");
-
         }
 
         Property storage property = properties[id];
-        
-        (bool success, ) = payable(property.owner).call{value: amountToPay}("");
-        if(success){
-            property.owner = buyer;
-            emit PropertySold(id, property.owner, buyer, amountToPay);
-        }
 
+        (bool success, ) = payable(property.owner).call{value: amountToPay}("");
+        if (success) {
+            property.owner = buyer;
+            emit PropertySold(id, buyer, buyer, amountToPay);
+        }
     }
 
     function getAllProperties() public view returns(Property[] memory){
@@ -131,9 +130,42 @@ contract MyContract {
         return items;
     } 
 
-    function getProperty() external view returns(){}
+    function getProperty(uint id) external view returns(uint,address,uint,string memory,string memory,string memory,string memory, string memory){
+        Property memory property = properties[id];
+        return (
+            property.productId,
+            property.owner,
+            property.price,
+            property.propertyName,
+            property.category,
+            property.images,
+            property.propertyAddress,
+            property.propertyDescription
+        );
+    }
 
-    function getUserProperties() external view returns (Property[] memory){}
+    function getUserProperties(address user) external view returns (Property[] memory){
+        uint totalItemCount = propertyIndex;
+        uint itemCount = 0;
+        uint currentIndex = 0;
+        for(uint i=0; i < totalItemCount; i++){
+            if(properties[i+1].owner == user){
+                itemCount += 1;
+            }
+
+        }
+
+        Property[] memory items = new Property[](itemCount);
+        for(uint i = 0; i < totalItemCount; i++){
+            if(properties[i+1].owner == user){
+                uint currentId = i + 1;
+                Property storage currentItem = properties[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+
+        }
+    }
 
     function addReview() external {}
 
