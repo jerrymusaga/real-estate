@@ -210,7 +210,11 @@ contract MyContract {
         return userProductReviews;
     }
 
-    function likeReview() external{}
+    function likeReview(uint productId, uint reviewIndex, address user) external{
+        Review storage review = reviews[productId][reviewIndex];
+        review.likes++;
+        emit ReviewLiked(productId, reviewIndex, user, review.likes);
+    }
 
     function getHighestRatedProduct() external view returns (uint){}
 
