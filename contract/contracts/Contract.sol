@@ -216,7 +216,22 @@ contract MyContract {
         emit ReviewLiked(productId, reviewIndex, user, review.likes);
     }
 
-    function getHighestRatedProduct() external view returns (uint){}
+    function getHighestRatedProduct() external view returns (uint){
+        uint highestRating = 0;
+        uint highestRatedProductId = 0;
+
+        for(uint i = 0; i < reviewsCounter; i++){
+            uint productId = i + 1;
+            if(products[productId].numOfReviews > 0){
+                uint avgRating = products[productId].totalRating / products[productId].numOfReviews;
+                if(avgRating > highestRating){
+                    highestRating = avgRating;
+                    highestRatedProductId = productId;
+                }
+            }
+        }
+        return highestRatedProductId;
+    }
 
 
 }
