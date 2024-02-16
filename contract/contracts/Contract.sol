@@ -21,7 +21,7 @@ contract MyContract {
     uint public propertyIndex;
 
     event PropertyListed(uint indexed id, address indexed owner, uint price);  
-    event PropertySold(uint indexed id, address indexed oldOwner, uint indexed newOwner, uint price);
+    event PropertySold(uint indexed id, address indexed oldOwner, address indexed newOwner, uint price);
     event PropertyReSold(uint indexed id, address indexed oldOwner, uint indexed newOwner, uint price);
 
     struct Review{
@@ -32,7 +32,7 @@ contract MyContract {
         uint likes;
     }
 
-    mapping(uint => Review) private reviews;
+    mapping(uint => Review[]) private reviews;
     mapping(address => uint[]) private userReviews;
     mapping(uint => Product) private products;
 
@@ -52,6 +52,7 @@ contract MyContract {
     error ListedPrice(string);
     error NotOwner(string);
     error InsufficientAmount(string);
+    error RatingError(string);
 
     constructor() {}
 
@@ -111,7 +112,7 @@ contract MyContract {
         (bool success, ) = payable(property.owner).call{value: amountToPay}("");
         if (success) {
             property.owner = buyer;
-            emit PropertySold(id, buyer, buyer, amountToPay);
+            emit PropertySold(id, property.owner ,buyer, amountToPay);
         }
     }
 
@@ -167,11 +168,47 @@ contract MyContract {
         }
     }
 
-    function addReview() external {}
+    function addReview(
+        uint productId,
+        uint rating,
+        string calldata comment,
+        address user
+    ) external {
+        if (rating > 5 || rating < 1) {
+            revert RatingError("Rating must be between 1 and 5");
+        }
+        Property storage property = properties[productId];
+        property.reviewers.push(user);
+        property.reviews.push(comment);
 
-    function getProductReviews() external view returns (Review[] memory){}
+        reviews[productId].push(Review(productId, user, rating, comment, 0));
+        userReviews[user].push(productId);
+        products[productId].totalRating += rating;
+        products[productId].numOfReviews++;
 
-    function getUserReviews() external view returns (Review[] memory){}
+        emit ReviewAdded(productId, user, rating, comment);
+        reviewsCounter++;
+    }
+
+    function getProductReviews(uint productId) external view returns (Review[] memory){
+        return reviews[productId];
+    }
+
+    function getUserReviews(address user) external view returns (Review[] memory){
+        uint totalReviews = userReviews[user].length;
+        Review[] memory userProductReviews = new Review[](totalReviews);
+        for(uint i = 0; i < totalReviews; i++){
+            uint productId = userReviews[user][i];
+            Review[] memory productReviews = reviews[productId];
+
+            for(uint j = 0; j < productReviews.length; j++){
+                if(productReviews[j].reviewer == user){
+                    userProductReviews[i] = productReviews[j];
+                }
+            }
+        }
+        return userProductReviews;
+    }
 
     function likeReview() external{}
 
