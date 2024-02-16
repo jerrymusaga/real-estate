@@ -166,6 +166,7 @@ contract MyContract {
             }
 
         }
+        return items;
     }
 
     function addReview(
